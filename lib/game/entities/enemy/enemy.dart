@@ -3,55 +3,77 @@ import 'package:flame/components.dart';
 class Enemy extends PositionComponent {
   final double speed;
   late Vector2 target;
-  late SpriteComponent spriteComponent; // Контейнер для спрайта
+  late List<Vector2> routePoints;
+  int currentWaypointIndex = 0;
+  late SpriteComponent spriteComponent;
+  bool isReady = false;
 
-  Enemy({required Vector2 position, this.speed = 50})
+  Enemy({required Vector2 position, this.speed = 50, required this.routePoints})
     : super(position: position, size: Vector2(40, 40)) {
-    // Размер компонента задаёт область коллизии и размещения
+    target = routePoints[0];
   }
 
   @override
   Future<void> onLoad() async {
     super.onLoad();
-
-    // Загружаем спрайт врага
-    final sprite = await Sprite.load('/enemy.png');
-
-    // Создаём компонент для отображения спрайта
-    spriteComponent = SpriteComponent(
-      sprite: sprite,
-      size: size, // Размер спрайта = размеру компонента
-      position: Vector2.zero(), // Позиция внутри компонента (0,0)
-    );
-
-    // Добавляем спрайт в компонент
+    final sprite = await Sprite.load('enemy.png');
+    spriteComponent = SpriteComponent(sprite: sprite, size: size);
     add(spriteComponent);
+    isReady = true;
   }
 
   @override
   void update(double dt) {
     super.update(dt);
-    final game = findGame()!;
-    final gameHeight = game.size.y;
+    if (!isReady) return;
+    // print('--- Enemy Update ---');
+    // print('Pos: ${position}');
+    // print('Target: ${target}');
+    // print(
+    //   'Distance to target: ${position.distanceTo(target).toStringAsFixed(1)}',
+    // );
+    // print('isReady: $isReady, currentIndex: $currentWaypointIndex');
 
-    if (position.y > gameHeight + 100) {
+    final game = findGame()!;
+    final gameSize = game.size;
+
+    // Удаление за пределами экрана
+    if (position.x < -100 ||
+        position.x > gameSize.x + 100 ||
+        position.y < -100 ||
+        position.y > gameSize.y + 100) {
+      print('удаление');
       removeFromParent();
       return;
     }
 
-    // Проверяем, достиг ли враг цели
-    if (position.distanceTo(target) < 1) {
-      return; // Ждём следующую точку маршрута
+    // Переход к следующей точке
+    if (currentWaypointIndex < routePoints.length - 1) {
+      final nextTarget = routePoints[currentWaypointIndex + 1];
+      if (position.distanceTo(nextTarget) < 15) {
+        currentWaypointIndex++;
+        target = nextTarget;
+      }
+    } else {
+      // Продлеваем движение за последнюю точку
+      target =
+          routePoints.last +
+          (routePoints.last - routePoints[routePoints.length - 2])
+                  .normalized() *
+              300;
     }
 
-    // Двигаемся к цели
+    // Движение
     final direction = target - position;
-    direction.normalize();
-    position += direction * speed * dt;
-  }
-
-  // Метод для установки новой цели (используется при движении по маршруту)
-  void setTarget(Vector2 newTarget) {
-    target = newTarget;
+    if (direction.length > 0.1) {
+      direction.normalize();
+      position += direction * speed * dt;
+    } else {
+      // Если застряли — принудительно переходим к следующей точке
+      if (currentWaypointIndex < routePoints.length - 1) {
+        currentWaypointIndex++;
+        target = routePoints[currentWaypointIndex];
+      }
+    }
   }
 }

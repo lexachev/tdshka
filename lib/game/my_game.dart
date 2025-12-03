@@ -8,7 +8,7 @@ import 'package:tdshka/game/entities/tower/tower.dart';
 import 'package:tdshka/game/world/tile_map.dart';
 
 class MyGame extends FlameGame {
-  List<Vector2> _routePoints = []; // Точки маршрута
+  List<Vector2> routePoints = []; // Точки маршрута
   Timer? spawnTimer; // Таймер для спавна врагов
 
   late int columns; // Количество столбцов тайлов
@@ -35,29 +35,43 @@ class MyGame extends FlameGame {
   }
 
   // Создаём маршрут по центру дороги
+
   void _createRoute() {
     final roadY = rows ~/ 2;
-    for (int x = 0; x < columns; x++) {
-      _routePoints.add(
-        Vector2(
-          x * tileSize.toDouble() + tileSize / 2,
-          roadY * tileSize.toDouble() + tileSize / 2,
-        ),
+    routePoints.clear();
+    print(
+      'Generating route: columns=$columns, tileSize=$tileSize, roadY=$roadY',
+    );
+
+    for (int x = -1; x <= columns + 1; x++) {
+      final point = Vector2(
+        x * tileSize.toDouble() + tileSize / 2,
+        roadY * tileSize.toDouble() + tileSize / 2,
       );
+      routePoints.add(point);
+      print('Point $x: ${point}');
     }
+
+    print('Total route points: ${routePoints.length}');
   }
 
   void _startSpawning() {
     spawnTimer = Timer.periodic(Duration(seconds: 3), (timer) {
-      if (_routePoints.isNotEmpty) {
-        final enemy = Enemy(position: _routePoints[0], speed: 40);
-        enemy.target = _routePoints[1];
+      if (routePoints.length >= 2) {
+        // Минимум 2 точки
+        final startPosition = routePoints[0] - Vector2(tileSize.toDouble(), 0);
+        final enemy = Enemy(
+          position: startPosition,
+          speed: 20,
+          routePoints: routePoints,
+        );
         add(enemy);
       }
     });
   }
 
   @override
+  // ignore: override_on_non_overriding_member
   void onTapDown(TapDownInfo info) {
     final tapPosition = info.eventPosition.global;
 
