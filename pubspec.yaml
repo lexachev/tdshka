@@ -21,3 +21,10 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  assets:
+    - assets/images/
+    - assets/images/tileset/td/Tiles/
+    - assets/images/tileset/td/Tiles/FieldsTile_38.png
+    - assets/images/tileset/td/Tiles/FieldsTile_05.png
+    - assets/images/tileset/td/Tiles/FieldsTile_07.png
+   # - assets/images/tileset/td/Tiles/FieldsTile_01.png
