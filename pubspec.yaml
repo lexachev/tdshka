@@ -24,6 +24,7 @@ flutter:
   assets:
     - assets/images/
     - assets/images/tileset/td/Tiles/
+    - assets/images/tileset/td/Objects/
     - assets/images/tileset/td/Tiles/FieldsTile_38.png
     - assets/images/tileset/td/Tiles/FieldsTile_05.png
     - assets/images/tileset/td/Tiles/FieldsTile_07.png
